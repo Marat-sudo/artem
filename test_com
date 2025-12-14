@@ -1,0 +1,18 @@
+import sqlite3
+
+
+conn = sqlite3.connect("data/database.db")    # подключаем бд
+cursor = conn.cursor()
+
+
+cursor.execute(
+    f"""SELECT email
+        FROM Users
+        WHERE telegramm_id = ?""", (1681418572,))
+
+
+conn.close
+a = cursor.fetchall() == []
+
+
+print(a)

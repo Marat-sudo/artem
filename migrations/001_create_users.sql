@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    telegramm_id INTEGER, 
+    name TEXT NOT NULL,
+    phone TEXT,
+    email TEXT UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
