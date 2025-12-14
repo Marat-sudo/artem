@@ -36,6 +36,15 @@ def reg(message):
 def catalog(message):
     bot.send_message(message.chat.id, "privet", reply_markup=kb.catalog())
 
+
+@bot.message_handler(commands=['basket'])
+def basket(message):
+    if not db.basket_is_free(db.select_user_id(message.chat.id)):
+        pass
+    else:
+        bot.send_message(message.chat.id, "Корзина пустая")
+
+
 @bot.callback_query_handler(func=lambda call: call.data.endswith("cat"))
 def call_cat(call):
     cat = choice(['koshka', 'koshka_2', 'komury_A', 'kitten in milk',
@@ -54,16 +63,6 @@ def products_call(call):
         
     else:
         bot.answer_callback_query(call.id, text=f"Сначала вам надо зарегестрироватся камандой /reg", show_alert=True)
-
-
-@bot.message_handler(commands=['basket'])
-def basket(message):
-    if not db.basket_is_free(db.select_user_id(message.chat.id)):
-        pass
-
-
-
-
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('reg'))

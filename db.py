@@ -155,9 +155,10 @@ def add_item(user_id, product_id) -> None:
     )
     conn.commit()
     conn.close()
-    total_sum(order_id, product_id)
-
-def total_sum(order_id, product_id):
+    total_sum(order_id)
+    total_sum_one_product(order_id, product_id)
+    
+def total_sum(order_id):
     conn = sqlite3.connect(db_path)  
     cursor = conn.cursor()
 
@@ -168,10 +169,8 @@ def total_sum(order_id, product_id):
         WHERE order_id = ?
         """, (order_id,))
     
-    price, quantity = cursor.fetchone()
-    amount = price * quantity
-
-
+    amount =  fc.sum_tuple_in_list(cursor.fetchall())
+    
     cursor.execute(
         f"""
         UPDATE orders 
@@ -181,6 +180,31 @@ def total_sum(order_id, product_id):
 
     conn.commit()
     conn.close()
+
+
+
+def total_sum_one_product(order_id, product_id):
+    conn = sqlite3.connect(db_path)  
+    cursor = conn.cursor()
+
+    cursor = conn.cursor()
+    cursor.execute(
+        f"""
+        SELECT price_per_item, quantity FROM order_items
+        WHERE order_id = ? and product_id = ?
+        """, (order_id, product_id))
+    
+    amount =  fc.sum_tuple_in_list(cursor.fetchall())
+    cursor.execute(
+        f"""
+        UPDATE order_item 
+        SET total_price = ?
+        WHERE product_id = ?
+        """, (amount, product_id))
+
+    conn.commit()
+    conn.close()
+
 
 def select_quantity(order_id, product_id):
     conn = sqlite3.connect(db_path)  
@@ -197,7 +221,6 @@ def select_quantity(order_id, product_id):
     qua_status = cursor.fetchone()
     conn.close()
     
-    print(qua_status)
     if qua_status is None:
         return -1
     
@@ -231,6 +254,7 @@ def select_order_id(user_id):
     conn.commit()
     conn.close()
     return id
+
 
 def select_price(product_id) -> id:
     conn = sqlite3.connect(db_path)   
@@ -278,6 +302,35 @@ def select_name_from_id(product_id):
     conn.commit()
     conn.close()
     return name
+
+
+def select_all_basket(telegramm_id):
+    user_id = select_user_id(telegramm_id)
+    order_id = select_order_id(user_id)
+    conn = sqlite3.connect(db_path)   
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT * FROM orders
+        WHERE user_id = ? and (status = 'new' or status = 'pending')
+        """, (user_id,)
+    )
+
+    busket_head = cursor.fetchone()
+    
+    cursor.execute(
+        """
+        SELECT * FROM order_items
+        WHERE order_id = ? and (status = 'new' or status = 'pending')
+        """, (order_id,)
+    )
+    
+    busket_values = cursor.fetchall()
+    
+    
+    conn.commit()
+    conn.close()
+    return (busket_head, busket_values)
 
 
 # def select_basket(order_id):

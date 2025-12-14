@@ -1,6 +1,7 @@
 
 from telebot import types
 import db
+import any_func as fc
 
 def reg_user():
     kbd = types.InlineKeyboardMarkup(row_width=2)
@@ -15,22 +16,8 @@ def reg_user():
     return kbd
 
 
-
-def all_products(page=0):
-    products = db.fetc_all_products()
-    one_page_products = []
-    for ind in range(page * 6, (page + 1) * 6):
-        if ind >= db.catalog_size():
-            one_page_products.append(("cat", "пусто"))
-        
-        else:
-            one_page_products.append(products[ind])
-
-    return one_page_products
-
-
 def catalog(page=0):
-    products = all_products(page)
+    products = fc.all_products(page)
     kbd = types.InlineKeyboardMarkup(row_width=2)
     b1 = types.InlineKeyboardButton(products[0][1], callback_data='products_' + str(products[0][0]))
     b2 = types.InlineKeyboardButton(products[1][1], callback_data='products_' + str(products[1][0]))
@@ -39,7 +26,7 @@ def catalog(page=0):
     b5 = types.InlineKeyboardButton(products[4][1], callback_data='products_' + str(products[4][0]))
     b6 = types.InlineKeyboardButton(products[5][1], callback_data='products_' + str(products[5][0]))
     b7 = types.InlineKeyboardButton("<", callback_data='page_-1_' + str(page))
-    b8 = types.InlineKeyboardButton("назад", callback_data='page_0')
+    b8 = types.InlineKeyboardButton("назад", callback_data='page_cat')
     b9 = types.InlineKeyboardButton(">", callback_data='page_+1_' + str(page))
     kbd.add(b1, b2, b3, b4, b5, b6)
     kbd.row(b7, b8, b9)
