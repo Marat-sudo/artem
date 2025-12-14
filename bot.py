@@ -55,14 +55,24 @@ def call_cat(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
 
 
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('products_'))
 def products_call(call):
     if db.user_in_db(call.message.chat.id):
-        sv.basket(db.select_user_id(call.message.chat.id), call.data[9:])
-        bot.answer_callback_query(call.id, text=f"Товар {db.select_name_from_id(call.data[9:])} добавлен в корзину", show_alert=True)
+        with open('cats/photo_2025-12-04_10-52-31.jpg', 'rb') as photo:
+            bot.send_photo(call.message.chat.id, photo, caption='выбирай', reply_markup=kb.answer(call.data[9:]))
         
+
     else:
         bot.answer_callback_query(call.id, text=f"Сначала вам надо зарегестрироватся камандой /reg", show_alert=True)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('answer_products'))
+def answer_products_call(call):
+    if call.data.find("Yes") > -1:
+        sv.basket(db.select_user_id(call.message.chat.id), call.data[20:])
+        bot.answer_callback_query(call.id, text=f"Товар {db.select_info_from_id(call.data[20:])[0]} добавлен в корзину", show_alert=True)
+    else:
+        pass
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('reg'))

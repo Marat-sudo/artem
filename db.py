@@ -151,26 +151,34 @@ def add_item(user_id, product_id) -> None:
         """
         INSERT INTO order_items(order_id, product_id, price_per_item, total_price)
         VALUES(?, ?, ?, ?)
-        """, (order_id, product_id, price, price)
+        """, (order_id, product_id, price, 0)
     )
     conn.commit()
     conn.close()
-    total_sum(order_id)
+    total_sum(order_id, product_id)
     total_sum_one_product(order_id, product_id)
     
-def total_sum(order_id):
+
+def total_sum(order_id, product_id):
     conn = sqlite3.connect(db_path)  
     cursor = conn.cursor()
 
     cursor = conn.cursor()
     cursor.execute(
         f"""
-        SELECT price_per_item, quantity FROM order_items
-        WHERE order_id = ?
+        SELECT total_sum FROM orders
+        WHERE id = ?
         """, (order_id,))
     
-    amount =  fc.sum_tuple_in_list(cursor.fetchall())
+    amount =  cursor.fetchone()[0]
     
+    cursor.execute(
+        f"""
+        SELECT price FROM products
+        WHERE id = ?
+        """, (product_id,))
+    
+    amount = amount + cursor.fetchone()[0]
     cursor.execute(
         f"""
         UPDATE orders 
@@ -190,14 +198,16 @@ def total_sum_one_product(order_id, product_id):
     cursor = conn.cursor()
     cursor.execute(
         f"""
-        SELECT price_per_item, quantity FROM order_items
+        SELECT price_per_item, total_price FROM order_items
         WHERE order_id = ? and product_id = ?
         """, (order_id, product_id))
     
-    amount =  fc.sum_tuple_in_list(cursor.fetchall())
+
+    total_price, price_per_item = cursor.fetchone()
+    amount = total_price + price_per_item 
     cursor.execute(
         f"""
-        UPDATE order_item 
+        UPDATE order_items
         SET total_price = ?
         WHERE product_id = ?
         """, (amount, product_id))
@@ -239,6 +249,10 @@ def add_quantity(quantity, order_id, product_id):
     
     conn.commit()
     conn.close()
+    total_sum(order_id, product_id)
+    total_sum_one_product(order_id, product_id)
+    
+    
 
 def select_order_id(user_id):
     conn = sqlite3.connect(db_path)   
@@ -288,7 +302,7 @@ def user_in_db(telegramm_id):
     return status
 
 
-def select_name_from_id(product_id):
+def select_info_from_id(product_id):
     conn = sqlite3.connect(db_path)   
     cursor = conn.cursor()
     cursor.execute(
@@ -298,7 +312,7 @@ def select_name_from_id(product_id):
         """, (product_id, )
     )
 
-    name = cursor.fetchone()[0]
+    name = cursor.fetchone()
     conn.commit()
     conn.close()
     return name

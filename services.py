@@ -10,10 +10,11 @@ def _basket_func(user_id, product_id):
 
         if quantity_items == -1:
             db.add_item(user_id, product_id)
-        
+            
         else:
             db.add_quantity(quantity_items, order_id, product_id)
-
+            
+        
 
 def basket(user_id, product_id):
     if db.basket_is_free(user_id):
