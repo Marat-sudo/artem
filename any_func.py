@@ -28,3 +28,12 @@ def sum_tuple_in_list(list_with_products):
         total_sum = total_sum + price * quantity
     
     return total_sum
+
+
+def create_description(product_id):
+    info = db.select_discription(product_id)
+    description = f"Товар: {info[1]}\n" \
+    f"количество в одной упаковке {info[2]}\n"\
+    f"цена: {info[3]}\n " \
+    f"количество на складе: {info[4]}" 
+    return description

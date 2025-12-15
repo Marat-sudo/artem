@@ -76,7 +76,7 @@ def fetc_all_products() -> list:
     # FOREIGN KEY (users_id) REFERENCES users(id)
     conn.execute("PRAGMA foreign_keys=ON;")
 
-    cursor.execute("SELECT * FROM products")
+    cursor.execute("SELECT * FROM products ORDER BY name")
     products = cursor.fetchall()
 
     conn.commit()
@@ -165,7 +165,7 @@ def total_sum(order_id, product_id):
 
     cursor = conn.cursor()
     cursor.execute(
-        f"""
+        """
         SELECT total_sum FROM orders
         WHERE id = ?
         """, (order_id,))
@@ -173,14 +173,14 @@ def total_sum(order_id, product_id):
     amount =  cursor.fetchone()[0]
     
     cursor.execute(
-        f"""
+        """
         SELECT price FROM products
         WHERE id = ?
         """, (product_id,))
     
     amount = amount + cursor.fetchone()[0]
     cursor.execute(
-        f"""
+        """
         UPDATE orders 
         SET total_sum = ?
         WHERE id = ?
@@ -197,7 +197,7 @@ def total_sum_one_product(order_id, product_id):
 
     cursor = conn.cursor()
     cursor.execute(
-        f"""
+        """
         SELECT price_per_item, total_price FROM order_items
         WHERE order_id = ? and product_id = ?
         """, (order_id, product_id))
@@ -206,7 +206,7 @@ def total_sum_one_product(order_id, product_id):
     total_price, price_per_item = cursor.fetchone()
     amount = total_price + price_per_item 
     cursor.execute(
-        f"""
+        """
         UPDATE order_items
         SET total_price = ?
         WHERE product_id = ?
@@ -222,7 +222,7 @@ def select_quantity(order_id, product_id):
 
 
     cursor.execute(
-        f"""
+        """
         SELECT quantity FROM order_items
         WHERE order_id = ? and product_id = ?
         """, (order_id, product_id))
@@ -241,7 +241,7 @@ def add_quantity(quantity, order_id, product_id):
     conn = sqlite3.connect(db_path)  
     cursor = conn.cursor()
     cursor.execute(
-        f"""
+    f"""
         UPDATE order_items 
         SET quantity = ?
         WHERE order_id = ? and product_id = ?
@@ -302,7 +302,7 @@ def user_in_db(telegramm_id):
     return status
 
 
-def select_info_from_id(product_id):
+def select_name_from_id(product_id):
     conn = sqlite3.connect(db_path)   
     cursor = conn.cursor()
     cursor.execute(
@@ -346,6 +346,20 @@ def select_all_basket(telegramm_id):
     conn.close()
     return (busket_head, busket_values)
 
+
+def select_discription(product_id):
+    conn = sqlite3.connect(db_path)  
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT * FROM products
+        WHERE id = ? 
+        """, (product_id, )
+    )
+
+    all_info = cursor.fetchone()
+    conn.close()
+    return all_info
 
 # def select_basket(order_id):
 #     conn = sqlite3.connect(db_path)   

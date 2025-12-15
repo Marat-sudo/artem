@@ -35,10 +35,9 @@ def catalog(page=0):
 
 
 def answer(product_id):
-    a = db.select_info_from_id(product_id)
     kbd = types.InlineKeyboardMarkup(row_width=2)
-    b1 = types.InlineKeyboardButton("dl", callback_data='answer_products_Yes_' + str(product_id))
-    b2 = types.InlineKeyboardButton("fl", callback_data='answer_products_No' + str(product_id))
+    b1 = types.InlineKeyboardButton("положить товар в корзину", callback_data='answer_products_Yes_' + str(product_id))
+    b2 = types.InlineKeyboardButton("выбрать другой товар", callback_data='answer_products_No' + str(product_id))
     kbd.add(b1, b2)
     return kbd
 
