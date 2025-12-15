@@ -41,7 +41,7 @@ def catalog(message):
 @bot.message_handler(commands=['basket'])
 def basket(message):
     if not db.basket_is_free(db.select_user_id(message.chat.id)):
-        pass
+        bot.send_message(message.chat.id, "xo", reply_markup=kb.basket(message.chat.id))
     else:
         bot.send_message(message.chat.id, "Корзина пустая")
 
@@ -74,7 +74,7 @@ def products_call(call):
 def answer_products_call(call):
     if call.data.find("Yes") > -1:
         sv.basket(db.select_user_id(call.message.chat.id), call.data[20:])
-        bot.answer_callback_query(call.id, text=f"Товар {db.select_name_from_id(call.data[20:])[0]} добавлен в корзину", show_alert=True)
+        bot.answer_callback_query(call.id, text=f"Товар {db.select_name_from_id(call.data[20:])} добавлен в корзину", show_alert=True)
         bot.delete_message(call.message.chat.id, call.message.message_id)
         bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog())
 

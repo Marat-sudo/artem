@@ -52,9 +52,8 @@ def update_user(telegramm_id, col_name, col_value):
 
 def not_occupied(checklist, table_name, col_name, col_value):
     if fc.checking_occurrence(checklist, table_name, col_name):
-        conn = sqlite3.connect(db_path)    # подключаем бд
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        conn.execute("PRAGMA foreign_keys=ON;")
 
         cursor.execute(
             f"""SELECT {col_name}
@@ -72,10 +71,7 @@ def not_occupied(checklist, table_name, col_name, col_value):
 def fetc_all_products() -> list:
     conn = sqlite3.connect(db_path)    # подключаем бд
     cursor = conn.cursor()
-    # чтобы таблицы могли быть взаимосвязаные 
-    # FOREIGN KEY (users_id) REFERENCES users(id)
-    conn.execute("PRAGMA foreign_keys=ON;")
-
+    
     cursor.execute("SELECT * FROM products ORDER BY name")
     products = cursor.fetchall()
 
@@ -84,12 +80,26 @@ def fetc_all_products() -> list:
     return products
 
 def catalog_size() -> int:
-    conn = sqlite3.connect(db_path)    # подключаем бд
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    conn.execute("PRAGMA foreign_keys=ON;")
+    
+    cursor.execute("SELECT COUNT(*) FROM products")
+    size = cursor.fetchone()[0]
 
-    cursor.execute("SELECT * FROM products")
-    size = len(cursor.fetchall())
+    conn.commit()
+    conn.close()
+    return size
+
+def basket_size(tg_id):
+    order_id = select_order_id(select_user_id(tg_id))
+    print(order_id, type(order_id))
+    conn = sqlite3.connect(db_path) 
+    cursor = conn.cursor()
+
+    cursor.execute("""SELECT COUNT(*) 
+                   FROM order_items 
+                   WHERE order_id = ?""", (order_id, ))
+    size = cursor.fetchone()[0]
 
     conn.commit()
     conn.close()
@@ -98,7 +108,7 @@ def catalog_size() -> int:
 def select_user_id(telegramm_id):
     conn = sqlite3.connect(db_path)  
     cursor = conn.cursor()
-    conn.execute("PRAGMA foreign_keys=ON;")
+
     cursor.execute(
         """
         SELECT id FROM users
@@ -312,7 +322,7 @@ def select_name_from_id(product_id):
         """, (product_id, )
     )
 
-    name = cursor.fetchone()
+    name = cursor.fetchone()[0]
     conn.commit()
     conn.close()
     return name
@@ -335,7 +345,7 @@ def select_all_basket(telegramm_id):
     cursor.execute(
         """
         SELECT * FROM order_items
-        WHERE order_id = ? and (status = 'new' or status = 'pending')
+        WHERE order_id = ?
         """, (order_id,)
     )
     
