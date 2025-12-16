@@ -62,7 +62,7 @@ def basket(id, page=0):
     b5 = types.InlineKeyboardButton(values[4][-1] + f" {str(values[4][1])}шт", callback_data='basket_item_' + str(values[4][0]))
     b6 = types.InlineKeyboardButton(values[5][-1] + f" {str(values[5][1])}шт", callback_data='basket_item_' + str(values[5][0]))
     b7 = types.InlineKeyboardButton("<", callback_data='basket_page_-1_' + str(page))
-    b8 = types.InlineKeyboardButton("назад", callback_data='каталог')
+    b8 = types.InlineKeyboardButton("каталог", callback_data='back_basket')
     b9 = types.InlineKeyboardButton(">", callback_data='basket_page_+1_' + str(page))
     b10 = types.InlineKeyboardButton("test", callback_data='aa')
     b11 = types.InlineKeyboardButton("test", callback_data='aa')
@@ -80,5 +80,5 @@ def item_choice(product_id: str):
     b2 = types.InlineKeyboardButton("удалить весь товар", callback_data='choice_answer_all_' + product_id)
     b3 = types.InlineKeyboardButton("вернутся назад", callback_data='back_choice')
     kbd.add(b1, b2)
-    kbd.add(b3)
+    kbd.row(b3)
     return kbd

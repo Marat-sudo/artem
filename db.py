@@ -193,7 +193,7 @@ def total_sum(order_id, product_id):
         UPDATE orders 
         SET total_sum = ?
         WHERE id = ?
-        """, (amount, order_id))
+        """, (round(amount, 2), order_id))
 
     conn.commit()
     conn.close()
@@ -219,7 +219,7 @@ def total_sum_one_product(order_id, product_id):
         UPDATE order_items
         SET total_price = ?
         WHERE product_id = ?
-        """, (amount, product_id))
+        """, (round(amount, 2), product_id))
 
     conn.commit()
     conn.close()
@@ -254,7 +254,7 @@ def add_quantity(quantity, order_id, product_id):
         UPDATE order_items 
         SET quantity = ?
         WHERE order_id = ? and product_id = ?
-        """, (round(quantity + 1), order_id, product_id))
+        """, (quantity + 1, order_id, product_id))
     
     conn.commit()
     conn.close()
@@ -380,5 +380,55 @@ def select_discription(product_id):
 
 
 
-# def delete_one_product(tg_id, product_id):
+def delete_one_product(tg_id, product_id):
+    conn = sqlite3.connect(db_path)  
+    cursor = conn.cursor()
 
+    user_id = select_user_id(tg_id)
+    order_id = select_order_id(user_id)
+
+    price = select_price(product_id)
+    
+    if select_quantity(order_id,product_id) <= 1:
+        cursor.execute(
+            """
+            DELETE FROM order_items
+            WHERE product_id = ?
+            """, (product_id,)
+        )
+
+        cursor.execute(
+            """
+            UPDATE orders
+            SET total_sum = total_sum - ?
+            WHERE id = ?
+            """, (round(price, 2), order_id)
+        )
+
+    else:
+        cursor.execute(
+            """
+            UPDATE order_items
+            SET quantity = quantity - 1
+            WHERE order_id = ? and product_id = ?
+            """, (order_id, product_id)
+        )
+
+        cursor.execute(
+            """
+            UPDATE order_items
+            SET total_price = total_price - ?
+            WHERE order_id = ? and product_id = ?
+            """, (round(price, 2), order_id, product_id)
+        )
+
+        cursor.execute(
+            """
+            UPDATE orders
+            SET total_sum = total_sum - ?
+            WHERE id = ?
+            """, (round(price, 2), order_id)
+        )
+
+    conn.commit()
+    conn.close()

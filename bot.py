@@ -86,20 +86,26 @@ def answer_products_call(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('basket_item_'))
 def products_call(call):
-     mes = "Удалить один такой товар\n" \
-     "удалить все товары этого типа\n" \
-     "или вернутся назад?"
-     bot.send_message(call.message.chat.id, mes, reply_markup=kb.item_choice(call.data[12:]))
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+    prod_name = db.select_name_from_id(call.data[12:])
+    mes = f"Удалить один {prod_name}\n" \
+    "удалить все товары этого типа\n" \
+    "или вернутся назад?"
+    product_id = call.data[12:]
+    bot.send_message(call.message.chat.id, mes, reply_markup=kb.item_choice(product_id))
 
 
-# @bot.callback_query_handler(func=lambda call: call.data.startswith('choice_answer_'))
-# def products_call(call):
-#      if call.data.find("all"):
-        
-
-#     elif call.data.find("one"):
-
-#     else:
+@bot.callback_query_handler(func=lambda call: call.data.startswith('choice_answer_'))
+def choice_answer(call):
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+ 
+    if call.data.find("all") > -1:
+        pass
+    elif call.data.find("one") > -1:
+        db.delete_one_product(call.message.chat.id, call.data[18:])
+        bot.send_message(call.message.chat.id, "удалена одна штука этого товара", reply_markup=kb.basket(call.message.chat.id))
+    else:
+        pass
 
 
 

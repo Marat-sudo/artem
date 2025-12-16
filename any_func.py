@@ -50,13 +50,6 @@ def all_products_from_basket(tg_id, page):
     return basket_list
 
 
-def sum_tuple_in_list(list_with_products):
-    total_sum = 0
-    for product in list_with_products:
-        price, quantity = product
-        total_sum = round(total_sum + price * quantity)
-    
-    return total_sum
 
 
 def create_description(product_id):
