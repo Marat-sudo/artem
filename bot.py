@@ -19,7 +19,7 @@ def start(message):
     "/history - история покупок\n " \
     "/catalog - каталог товаров \n" \
     "/cat - cat"
-    bot.send_message(message.chat.id, mes)
+    bot.send_message(message.chat.id, mes, reply_markup=kb.start_kd())
 
 
 
@@ -41,7 +41,8 @@ def catalog(message):
 @bot.message_handler(commands=['basket'])
 def basket(message):
     if not db.basket_is_free(db.select_user_id(message.chat.id)):
-        bot.send_message(message.chat.id, "xo", reply_markup=kb.basket(message.chat.id))
+        head = db.select_basket_head(message.chat.id)
+        bot.send_message(message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(message.chat.id))
     else:
         bot.send_message(message.chat.id, "Корзина пустая")
 
@@ -83,9 +84,23 @@ def answer_products_call(call):
         bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog())
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('basket_arr'))
+@bot.callback_query_handler(func=lambda call: call.data.startswith('basket_item_'))
 def products_call(call):
-    print(call.data)
+     mes = "Удалить один такой товар\n" \
+     "удалить все товары этого типа\n" \
+     "или вернутся назад?"
+     bot.send_message(call.message.chat.id, mes, reply_markup=kb.item_choice(call.data[12:]))
+
+
+# @bot.callback_query_handler(func=lambda call: call.data.startswith('choice_answer_'))
+# def products_call(call):
+#      if call.data.find("all"):
+        
+
+#     elif call.data.find("one"):
+
+#     else:
+
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('reg'))
@@ -147,24 +162,35 @@ def pages(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('basket_page_'))
 def pages(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
+    
     max_size = int(ceil(db.basket_size(call.message.chat.id) // 6))
+    head = db.select_basket_head(call.message.chat.id)
+    mes = f"Итоговая сумма: {head[3]}"
     if call.data.startswith("basket_page_+1"):
         if int(call.data[15:]) < max_size:
-             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id, int(call.data[12:]) + 1))
+             bot.send_message(call.message.chat.id, mes, reply_markup=kb.basket(call.message.chat.id, int(call.data[15:]) + 1))
         
         elif int(call.data[15:]) == max_size:
-            bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id))
+            bot.send_message(call.message.chat.id, mes, reply_markup=kb.basket(call.message.chat.id))
 
     elif call.data.startswith("basket_page_-1"):
         if int(call.data[15:]) == 0:
-             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id, max_size))
+             bot.send_message(call.message.chat.id, mes, reply_markup=kb.basket(call.message.chat.id, max_size))
         
         else:
-           bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id, int(call.data[12:]) - 1))
+           bot.send_message(call.message.chat.id, mes, reply_markup=kb.basket(call.message.chat.id, int(call.data[15:]) - 1))
 
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('back'))
+def answer_products_call(call):
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+    if call.data == "back_products":
+        head = db.select_basket_head(call.message.chat.id)
+        bot.send_message(call.message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(call.message.chat.id))
 
+    elif call.data == "back_basket":
+        bot.send_message(call.message.chat.id, "каталог товаров:", reply_markup=kb.catalog())
 
 
 

@@ -254,7 +254,7 @@ def add_quantity(quantity, order_id, product_id):
         UPDATE order_items 
         SET quantity = ?
         WHERE order_id = ? and product_id = ?
-        """, (quantity + 1, order_id, product_id))
+        """, (round(quantity + 1), order_id, product_id))
     
     conn.commit()
     conn.close()
@@ -332,14 +332,7 @@ def select_all_basket(telegramm_id):
     order_id = select_order_id(user_id)
     conn = sqlite3.connect(db_path)   
     cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT * FROM orders
-        WHERE user_id = ? and (status = 'new' or status = 'pending')
-        """, (user_id,)
-    )
 
-    busket_head = cursor.fetchone()
     
     cursor.execute(
         """
@@ -353,7 +346,22 @@ def select_all_basket(telegramm_id):
     
     conn.commit()
     conn.close()
-    return (busket_head, busket_values)
+    return busket_values
+
+
+def select_basket_head(tg_id):
+    user_id = select_user_id(tg_id)
+    conn = sqlite3.connect(db_path)   
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT * FROM orders
+        WHERE user_id = ? and (status = 'new' or status = 'pending')
+        """, (user_id,)
+    )
+
+    basket_head = cursor.fetchone()
+    return basket_head
 
 
 def select_discription(product_id):
@@ -370,17 +378,7 @@ def select_discription(product_id):
     conn.close()
     return all_info
 
-# def select_basket(order_id):
-#     conn = sqlite3.connect(db_path)   
-#     cursor = conn.cursor()
-#     cursor.execute(
-#         """
-#         SELECT * FROM orders
-#         WHERE id = ? and (status = 'new 'or status = 'pending')
-#         """, (user_id, )
-#     )
 
-#     status = not cursor.fetchall() == []
-#     conn.commit()
-#     conn.close()
-#     return status
+
+# def delete_one_product(tg_id, product_id):
+

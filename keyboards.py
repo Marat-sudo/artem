@@ -3,6 +3,16 @@ from telebot import types
 import db
 import any_func as fc
 
+
+def start_kd():
+    kbd = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
+    b1 = types.KeyboardButton("/reg")
+    b2 = types.KeyboardButton("/basket")
+    b3 = types.KeyboardButton("/catalog")
+    kbd.add(b1, b2, b3)
+    return kbd
+
+
 def reg_user():
     kbd = types.InlineKeyboardMarkup(row_width=2)
     b1 = types.InlineKeyboardButton(f'добавить номер телефона', callback_data='reg_phone')
@@ -26,7 +36,7 @@ def catalog(page=0):
     b5 = types.InlineKeyboardButton(products[4][1], callback_data='products_' + str(products[4][0]))
     b6 = types.InlineKeyboardButton(products[5][1], callback_data='products_' + str(products[5][0]))
     b7 = types.InlineKeyboardButton("<", callback_data='page_-1_' + str(page))
-    b8 = types.InlineKeyboardButton("назад", callback_data='page_cat')
+    b8 = types.InlineKeyboardButton("корзина", callback_data='back_products')
     b9 = types.InlineKeyboardButton(">", callback_data='page_+1_' + str(page))
     kbd.add(b1, b2, b3, b4, b5, b6)
     kbd.row(b7, b8, b9)
@@ -42,24 +52,33 @@ def answer(product_id):
     return kbd
 
 def basket(id, page=0):
-    head, values = fc.all_products_from_basket(id, page)
-    """
-    ----------------------------------------------------------------------------------------------------
-(1, 1, 'new', 694.5, '2025-12-15 14:43:51') [(3, 1, 217.3, 217.3), (6, 1, 57.0, 57.0), (9, 3, 105.4, 316.20000000000005), (13, 1, 104.0, 104.0), ('cat', 'пусто'), ('cat', 'пусто')]
-[(3, 1,  217.3, 217.3), (6, 1, 57.0, 57.0), (9, 3, 105.4, 316.20000000000005), (13, 1, 104.0, 104.0)]
-  смотри в бд
-    """
+    values = fc.all_products_from_basket(id, page)
 
     kbd = types.InlineKeyboardMarkup(row_width=2)
-    b1 = types.InlineKeyboardButton(values[0][-1], callback_data='basket_' + str(values[0][0]))
-    b2 = types.InlineKeyboardButton(values[1][-1], callback_data='basket_' + str(values[1][0]))
-    b3 = types.InlineKeyboardButton(values[2][-1], callback_data='basket_' + str(values[2][0]))
-    b4 = types.InlineKeyboardButton(values[3][-1], callback_data='basket_' + str(values[3][0]))
-    b5 = types.InlineKeyboardButton(values[4][-1], callback_data='basket_' + str(values[4][0]))
-    b6 = types.InlineKeyboardButton(values[5][-1], callback_data='basket_' + str(values[5][0]))
+    b1 = types.InlineKeyboardButton(values[0][-1] + f" {str(values[0][1])}шт", callback_data='basket_item_' + str(values[0][0]))
+    b2 = types.InlineKeyboardButton(values[1][-1] + f" {str(values[1][1])}шт", callback_data='basket_item_' + str(values[1][0]))
+    b3 = types.InlineKeyboardButton(values[2][-1] + f" {str(values[2][1])}шт", callback_data='basket_item_' + str(values[2][0]))
+    b4 = types.InlineKeyboardButton(values[3][-1] + f" {str(values[3][1])}шт", callback_data='basket_item_' + str(values[3][0]))
+    b5 = types.InlineKeyboardButton(values[4][-1] + f" {str(values[4][1])}шт", callback_data='basket_item_' + str(values[4][0]))
+    b6 = types.InlineKeyboardButton(values[5][-1] + f" {str(values[5][1])}шт", callback_data='basket_item_' + str(values[5][0]))
     b7 = types.InlineKeyboardButton("<", callback_data='basket_page_-1_' + str(page))
-    b8 = types.InlineKeyboardButton("назад", callback_data='page_cat')
+    b8 = types.InlineKeyboardButton("назад", callback_data='каталог')
     b9 = types.InlineKeyboardButton(">", callback_data='basket_page_+1_' + str(page))
+    b10 = types.InlineKeyboardButton("test", callback_data='aa')
+    b11 = types.InlineKeyboardButton("test", callback_data='aa')
     kbd.add(b1, b2, b3, b4, b5, b6)
+    kbd.add(b10)
+    kbd.add(b11)
     kbd.row(b7, b8, b9)
+    
+    return kbd
+
+
+def item_choice(product_id: str):
+    kbd = types.InlineKeyboardMarkup(row_width=2)
+    b1 = types.InlineKeyboardButton("удалить один товар", callback_data='choice_answer_one_' + product_id)
+    b2 = types.InlineKeyboardButton("удалить весь товар", callback_data='choice_answer_all_' + product_id)
+    b3 = types.InlineKeyboardButton("вернутся назад", callback_data='back_choice')
+    kbd.add(b1, b2)
+    kbd.add(b3)
     return kbd

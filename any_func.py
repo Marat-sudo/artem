@@ -22,7 +22,7 @@ def all_products(page=0):
 
 
 def all_products_from_basket(tg_id, page):
-    head, velues = db.select_all_basket(tg_id)
+    velues = db.select_all_basket(tg_id)
     basket_list = []
     buffer_list = []
     
@@ -31,15 +31,15 @@ def all_products_from_basket(tg_id, page):
     for product in velues:
         buffer_list.append(product[2:])
 
-
     for ind in range(page * 6, (page + 1) * 6):
+
         if ind >= size_bask:
             basket_list.append(("cat", "пусто"))
         
         else:
             basket_list.append(list(buffer_list[ind]))
-            name = db.select_name_from_id(basket_list[ind][0])
-            basket_list[ind].append(name)
+            name = db.select_name_from_id(basket_list[-1][0])
+            basket_list[-1].append(name)
 
     """
     ----------------------------------------------------------------------------------------------------
@@ -47,14 +47,14 @@ def all_products_from_basket(tg_id, page):
 [(3, 1, 217.3, 217.3), (6, 1, 57.0, 57.0), (9, 3, 105.4, 316.20000000000005), (13, 1, 104.0, 104.0)]
   смотри в бд
     """
-    return head, basket_list
+    return basket_list
 
 
 def sum_tuple_in_list(list_with_products):
     total_sum = 0
     for product in list_with_products:
         price, quantity = product
-        total_sum = total_sum + price * quantity
+        total_sum = round(total_sum + price * quantity)
     
     return total_sum
 
