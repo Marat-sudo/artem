@@ -239,6 +239,22 @@ def select_quantity(order_id, product_id):
     
     return qua_status[0]
 
+def select_stock_from_products(product_id):
+    conn = sqlite3.connect(db_path)  
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT stock FROM products
+        WHERE id = ?
+        """, (product_id))
+    
+    conn.commit()
+    qua_status = cursor.fetchone()
+    conn.close()
+    return qua_status[0]
+
 
 def add_quantity(order_id, product_id):
     conn = sqlite3.connect(db_path)  
@@ -464,6 +480,22 @@ def paid(tg_id):
     user_id = select_user_id(tg_id)
     order_id = select_order_id(user_id)
 
+    basket = select_all_basket(tg_id)
+    
+    
+    """
+    [(5, 6, 8, 2, 40.0, 80.0)]
+    id. or_id. pr_id, qua, price. total_price
+    """
+
+    for product_value in basket:
+        cursor.execute(
+            """
+            UPDATE products
+            SET stock = stock - ?
+            WHERE id = ?
+            """, (product_value[3], product_value[2]) 
+            )
     
 
     cursor.execute(
@@ -473,6 +505,5 @@ def paid(tg_id):
         WHERE id = ?
         """, (order_id,)
         )
-
     conn.commit()
     conn.close()

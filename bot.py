@@ -66,12 +66,12 @@ def call_cat(call):
 def products_call(call):
     if db.user_in_db(call.message.chat.id):
         try:
-            with open(f'img/1{call.data[9:]}.jpg', 'rb') as photo:
+            with open(f'img/{call.data[9:]}.jpg', 'rb') as photo:
                 desc = fc.create_description(call.data[9:])
                 bot.send_photo(call.message.chat.id, photo, caption=desc, reply_markup=kb.answer(call.data[9:]))
 
         except FileNotFoundError:
-            with open('img/pizdeq.jpg', 'rb') as photo:
+            with open('cats/pizdeq.jpg', 'rb') as photo:
                 desc = fc.create_description(call.data[9:])
                 bot.send_photo(call.message.chat.id, photo, caption=desc, reply_markup=kb.answer(call.data[9:]))
 
@@ -85,11 +85,14 @@ def products_call(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('answer_products'))
 def answer_products_call(call):
     if call.data.find("Yes") > -1:
-        sv.basket(db.select_user_id(call.message.chat.id), call.data[20:])
-        bot.answer_callback_query(call.id, text=f"Товар {db.select_name_from_id(call.data[20:])} добавлен в корзину", show_alert=True)
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-        bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog())
-
+        if  db.select_stock_from_products(call.data[20:]) > 0:
+            sv.basket(db.select_user_id(call.message.chat.id), call.data[20:])
+            bot.answer_callback_query(call.id, text=f"Товар {db.select_name_from_id(call.data[20:])} добавлен в корзину", show_alert=True)
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+            bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog())
+        
+        else:
+            bot.answer_callback_query(call.id, text="данный товар закончился на складе")
     else:
         bot.delete_message(call.message.chat.id, call.message.message_id)
         bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog())
