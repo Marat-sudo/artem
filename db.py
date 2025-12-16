@@ -92,7 +92,6 @@ def catalog_size() -> int:
 
 def basket_size(tg_id):
     order_id = select_order_id(select_user_id(tg_id))
-    print(order_id, type(order_id))
     conn = sqlite3.connect(db_path) 
     cursor = conn.cursor()
 

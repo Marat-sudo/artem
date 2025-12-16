@@ -37,18 +37,17 @@ def all_products_from_basket(tg_id, page):
             basket_list.append(("cat", "пусто"))
         
         else:
-            basket_list.append(buffer_list[ind])
-    
-    print("-" * 100)
-    print(head, basket_list)
-    print(buffer_list)
+            basket_list.append(list(buffer_list[ind]))
+            name = db.select_name_from_id(basket_list[ind][0])
+            basket_list[ind].append(name)
+
     """
     ----------------------------------------------------------------------------------------------------
 (1, 1, 'new', 694.5, '2025-12-15 14:43:51') [(3, 1, 217.3, 217.3), (6, 1, 57.0, 57.0), (9, 3, 105.4, 316.20000000000005), (13, 1, 104.0, 104.0), ('cat', 'пусто'), ('cat', 'пусто')]
 [(3, 1, 217.3, 217.3), (6, 1, 57.0, 57.0), (9, 3, 105.4, 316.20000000000005), (13, 1, 104.0, 104.0)]
   смотри в бд
     """
-    return basket_list
+    return head, basket_list
 
 
 def sum_tuple_in_list(list_with_products):

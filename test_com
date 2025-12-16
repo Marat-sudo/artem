@@ -1,3 +1,1 @@
-a = 'answer_products_Yes_13123123'
-
-print(a[20:])
+a = (1, 2, 3)

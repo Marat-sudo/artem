@@ -83,6 +83,11 @@ def answer_products_call(call):
         bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog())
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('basket_arr'))
+def products_call(call):
+    print(call.data)
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('reg'))
 def reg_phone_email(call):
     if call.data == 'reg_phone':
@@ -136,6 +141,32 @@ def pages(call):
         
         else:
             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog(int(call.data[8:]) - 1))
+
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('basket_page_'))
+def pages(call):
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+    max_size = int(ceil(db.basket_size(call.message.chat.id) // 6))
+    if call.data.startswith("basket_page_+1"):
+        if int(call.data[15:]) < max_size:
+             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id, int(call.data[12:]) + 1))
+        
+        elif int(call.data[15:]) == max_size:
+            bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id))
+
+    elif call.data.startswith("basket_page_-1"):
+        if int(call.data[15:]) == 0:
+             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id, max_size))
+        
+        else:
+           bot.send_message(call.message.chat.id, "privet", reply_markup=kb.basket(call.message.chat.id, int(call.data[12:]) - 1))
+
+
+
+
+
+
 
 
 @bot.message_handler(commands=['cat'])
