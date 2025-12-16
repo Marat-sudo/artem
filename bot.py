@@ -39,11 +39,14 @@ def catalog(message):
 
 @bot.message_handler(commands=['basket'])
 def basket(message):
-    if not db.basket_is_free(db.select_user_id(message.chat.id)):
+    if db.user_in_db(message.chat.id):
+        db.create_basket(db.select_user_id(message.chat.id))
         head = db.select_basket_head(message.chat.id)
         bot.send_message(message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(message.chat.id))
+
     else:
-        bot.send_message(message.chat.id, "Корзина пустая")
+        bot.send_message(message.chat.id, "Сначала вам надо зарегестрироватся камандой /reg")
+        bot.delete_message(message.chat.id, message.message_id)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.endswith("cat"))
@@ -109,8 +112,15 @@ def choice_answer(call):
     bot.send_message(call.message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(call.message.chat.id))
 
 
-
-
+@bot.callback_query_handler(func=lambda call: call.data.startswith('pay'))
+def choice_answer(call):
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+    with open('cats/pay.jpg', 'rb') as photo:
+            desc = "тут должна быть вся оплата, но мне делать что-то больше даже клавиатуру, а я хотел её изначально поставить тут мда, поймите меня поэалуйста"
+            bot.send_photo(call.message.chat.id, photo, caption=desc)
+    
+    bot.send_message(call.message.chat.id, "всё оплата прошла, можете посмотреть состояние доставки в /delivery")
+    
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('reg'))
 def reg_phone_email(call):
@@ -194,14 +204,17 @@ def pages(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('back'))
 def answer_products_call(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
-    if call.data == "back_products":
-        head = db.select_basket_head(call.message.chat.id)
-        bot.send_message(call.message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(call.message.chat.id))
+    if db.user_in_db(call.message.chat.id):
+        db.create_basket(db.select_user_id(call.message.chat.id))
+        if call.data == "back_products":
+            head = db.select_basket_head(call.message.chat.id)
+            bot.send_message(call.message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(call.message.chat.id))
 
-    elif call.data == "back_basket":
-        bot.send_message(call.message.chat.id, "каталог товаров:", reply_markup=kb.catalog())
-
-
+        elif call.data == "back_basket":
+             bot.send_message(call.message.chat.id, "каталог товаров:", reply_markup=kb.catalog())
+        
+    else:
+        bot.send_message(call.message.chat.id, "Сначала вам надо зарегестрироватся камандой /reg")
 
 @bot.callback_query_handler(func=lambda call: call.data == 'another') 
 def products_call(call):

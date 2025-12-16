@@ -115,27 +115,30 @@ def select_user_id(telegramm_id):
         """, (telegramm_id, )
     )
     user_id = cursor.fetchone()[0]
-
+    
     conn.commit()
     conn.close()
+    
+    
+
     return user_id
 
 
 def basket_is_free(user_id) -> bool:
     conn = sqlite3.connect(db_path)  
     cursor = conn.cursor()
-    conn.execute("PRAGMA foreign_keys=ON;")
     cursor.execute(
         """
         SELECT * FROM orders
-        WHERE id = ? and (status = 'new' or status = 'pending')
+        WHERE user_id = ? and (status = 'new' or status = 'pending')
         """, (user_id, )
     )
     free = cursor.fetchall() == []
     conn.commit()
     conn.close()
-
-    return free
+    if free:
+        create_basket(user_id)
+    
 
 def create_basket(user_id) -> None:
     conn = sqlite3.connect(db_path)   
@@ -452,3 +455,7 @@ def delete_all_products(tg_id, product_id):
   
     conn.commit()
     conn.close()
+
+
+def paid(tg_id):
+    user_id = select_user_id(tg_id)
