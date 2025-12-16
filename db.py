@@ -458,4 +458,21 @@ def delete_all_products(tg_id, product_id):
 
 
 def paid(tg_id):
+    conn = sqlite3.connect(db_path)  
+    cursor = conn.cursor()
+
     user_id = select_user_id(tg_id)
+    order_id = select_order_id(user_id)
+
+    
+
+    cursor.execute(
+        """
+        UPDATE orders
+        SET status = 'paid'
+        WHERE id = ?
+        """, (order_id,)
+        )
+
+    conn.commit()
+    conn.close()

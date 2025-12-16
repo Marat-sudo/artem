@@ -1,11 +1,12 @@
 
 from config import TOKEN
 import telebot
-from random import choice
+from random import random, choice
 import keyboards as kb
 import services as sv
 import any_func as fc
 import db
+import os
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -40,10 +41,11 @@ def catalog(message):
 @bot.message_handler(commands=['basket'])
 def basket(message):
     if db.user_in_db(message.chat.id):
-        db.create_basket(db.select_user_id(message.chat.id))
+        if db.basket_is_free(db.select_user_id(message.chat.id)):
+           db.create_basket(db.select_user_id(message.chat.id))
+
         head = db.select_basket_head(message.chat.id)
         bot.send_message(message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(message.chat.id))
-
     else:
         bot.send_message(message.chat.id, "Сначала вам надо зарегестрироватся камандой /reg")
         bot.delete_message(message.chat.id, message.message_id)
@@ -63,9 +65,16 @@ def call_cat(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('products_'))
 def products_call(call):
     if db.user_in_db(call.message.chat.id):
-        with open('cats/photo_2025-12-04_10-52-31.jpg', 'rb') as photo:
-            desc = fc.create_description(call.data[9:])
-            bot.send_photo(call.message.chat.id, photo, caption=desc, reply_markup=kb.answer(call.data[9:]))
+        try:
+            with open(f'img/1{call.data[9:]}.jpg', 'rb') as photo:
+                desc = fc.create_description(call.data[9:])
+                bot.send_photo(call.message.chat.id, photo, caption=desc, reply_markup=kb.answer(call.data[9:]))
+
+        except FileNotFoundError:
+            with open('img/pizdeq.jpg', 'rb') as photo:
+                desc = fc.create_description(call.data[9:])
+                bot.send_photo(call.message.chat.id, photo, caption=desc, reply_markup=kb.answer(call.data[9:]))
+
         bot.delete_message(call.message.chat.id, call.message.message_id)
 
     else:
@@ -120,7 +129,8 @@ def choice_answer(call):
             bot.send_photo(call.message.chat.id, photo, caption=desc)
     
     bot.send_message(call.message.chat.id, "всё оплата прошла, можете посмотреть состояние доставки в /delivery")
-    
+    db.paid(call.message.chat.id)
+
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('reg'))
 def reg_phone_email(call):
@@ -205,14 +215,15 @@ def pages(call):
 def answer_products_call(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     if db.user_in_db(call.message.chat.id):
-        db.create_basket(db.select_user_id(call.message.chat.id))
+        if db.basket_is_free(db.select_user_id(call.message.chat.id)):
+            db.create_basket(db.select_user_id(call.message.chat.id))
+        
         if call.data == "back_products":
-            head = db.select_basket_head(call.message.chat.id)
-            bot.send_message(call.message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(call.message.chat.id))
+                head = db.select_basket_head(call.message.chat.id)
+                bot.send_message(call.message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(call.message.chat.id))
 
         elif call.data == "back_basket":
              bot.send_message(call.message.chat.id, "каталог товаров:", reply_markup=kb.catalog())
-        
     else:
         bot.send_message(call.message.chat.id, "Сначала вам надо зарегестрироватся камандой /reg")
 
@@ -223,12 +234,39 @@ def products_call(call):
 
 @bot.message_handler(commands=['cat'])
 def cat(message):
-    cat = choice(['koshka', 'koshka_2', 'komury_A', 'kitten in milk',
-                  'catic_mili', 'super_rjaka_demotivator_bot', 'inet', 'komury and komugi'])
-    ing = open(f'cats/{cat}.mp4', 'rb')
-    bot.send_animation(message.chat.id, ing, caption='test')
-    ing.close()
-    bot.delete_message(message.chat.id, message.message_id)
+    path = "cats"
+    mp_list = []
+    jpg_list = []
+    for file in sorted(os.listdir(path)):         
+        if file.endswith(".mp4"):            
+            mp_cat = path + "/" + file       
+            mp_list.append(mp_cat)
+
+        elif file.endswith(".jpg"):
+            jpg_cat = path + "/" + file     
+            jpg_list.append(jpg_cat)
+
+    rez = random() < 0.5
+
+    if rez:
+        try:
+            gif = choice(mp_list)
+            with open(gif, 'rb') as gifka:
+                bot.send_animation(message.chat.id, gifka)
+
+        except FileNotFoundError:
+            bot.send_message(message.chat.id, "mda")
+    
+    else:
+        try:
+            photo = choice(jpg_list)
+            with open(photo, 'rb') as ph:
+                bot.send_photo(message.chat.id, ph)
+
+        except FileNotFoundError:
+            bot.send_message(message.chat.id, "mda")
+    
+
 
 
 
