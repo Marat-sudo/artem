@@ -12,7 +12,7 @@ def _basket_func(user_id, product_id):
             db.add_item(user_id, product_id)
             
         else:
-            db.add_quantity(quantity_items, order_id, product_id)
+            db.add_quantity(order_id, product_id)
             
         
 

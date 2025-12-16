@@ -3,7 +3,6 @@ from telebot import types
 import db
 import any_func as fc
 
-
 def start_kd():
     kbd = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
     b1 = types.KeyboardButton("/reg")
@@ -28,6 +27,7 @@ def reg_user():
 
 def catalog(page=0):
     products = fc.all_products(page)
+    size = str(page + 1) + "/" + str(db.catalog_size() // 6 + 1)
     kbd = types.InlineKeyboardMarkup(row_width=2)
     b1 = types.InlineKeyboardButton(products[0][1], callback_data='products_' + str(products[0][0]))
     b2 = types.InlineKeyboardButton(products[1][1], callback_data='products_' + str(products[1][0]))
@@ -36,10 +36,12 @@ def catalog(page=0):
     b5 = types.InlineKeyboardButton(products[4][1], callback_data='products_' + str(products[4][0]))
     b6 = types.InlineKeyboardButton(products[5][1], callback_data='products_' + str(products[5][0]))
     b7 = types.InlineKeyboardButton("<", callback_data='page_-1_' + str(page))
-    b8 = types.InlineKeyboardButton("корзина", callback_data='back_products')
+    b8 = types.InlineKeyboardButton(size, callback_data='another')
     b9 = types.InlineKeyboardButton(">", callback_data='page_+1_' + str(page))
+    b10 = types.InlineKeyboardButton("корзина", callback_data='back_products')
     kbd.add(b1, b2, b3, b4, b5, b6)
     kbd.row(b7, b8, b9)
+    kbd.add(b10)
     return kbd
 
 
@@ -51,9 +53,9 @@ def answer(product_id):
     kbd.add(b1, b2)
     return kbd
 
-def basket(id, page=0):
-    values = fc.all_products_from_basket(id, page)
-
+def basket(tg_id, page=0):
+    values = fc.all_products_from_basket(tg_id, page)
+    size = str(page + 1) + "/" + str(db.basket_size(tg_id) // 6 + 1)
     kbd = types.InlineKeyboardMarkup(row_width=2)
     b1 = types.InlineKeyboardButton(values[0][-1] + f" {str(values[0][1])}шт", callback_data='basket_item_' + str(values[0][0]))
     b2 = types.InlineKeyboardButton(values[1][-1] + f" {str(values[1][1])}шт", callback_data='basket_item_' + str(values[1][0]))
@@ -62,10 +64,10 @@ def basket(id, page=0):
     b5 = types.InlineKeyboardButton(values[4][-1] + f" {str(values[4][1])}шт", callback_data='basket_item_' + str(values[4][0]))
     b6 = types.InlineKeyboardButton(values[5][-1] + f" {str(values[5][1])}шт", callback_data='basket_item_' + str(values[5][0]))
     b7 = types.InlineKeyboardButton("<", callback_data='basket_page_-1_' + str(page))
-    b8 = types.InlineKeyboardButton("каталог", callback_data='back_basket')
+    b8 = types.InlineKeyboardButton(size, callback_data='another')
     b9 = types.InlineKeyboardButton(">", callback_data='basket_page_+1_' + str(page))
-    b10 = types.InlineKeyboardButton("test", callback_data='aa')
-    b11 = types.InlineKeyboardButton("test", callback_data='aa')
+    b10 = types.InlineKeyboardButton("оплата корзины", callback_data='pay')
+    b11 = types.InlineKeyboardButton("каталог", callback_data='back_basket')
     kbd.add(b1, b2, b3, b4, b5, b6)
     kbd.add(b10)
     kbd.add(b11)

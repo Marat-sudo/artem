@@ -171,29 +171,20 @@ def add_item(user_id, product_id) -> None:
 def total_sum(order_id, product_id):
     conn = sqlite3.connect(db_path)  
     cursor = conn.cursor()
-
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT total_sum FROM orders
-        WHERE id = ?
-        """, (order_id,))
-    
-    amount =  cursor.fetchone()[0]
-    
     cursor.execute(
         """
         SELECT price FROM products
         WHERE id = ?
         """, (product_id,))
     
-    amount = amount + cursor.fetchone()[0]
+    amount = cursor.fetchone()[0]
+    
     cursor.execute(
         """
         UPDATE orders 
-        SET total_sum = ?
+        SET total_sum = ROUND(total_sum + ?, 2)
         WHERE id = ?
-        """, (round(amount, 2), order_id))
+        """, (amount,  order_id))
 
     conn.commit()
     conn.close()
@@ -217,9 +208,9 @@ def total_sum_one_product(order_id, product_id):
     cursor.execute(
         """
         UPDATE order_items
-        SET total_price = ?
+        SET total_price = ROUND(?, 2)
         WHERE product_id = ?
-        """, (round(amount, 2), product_id))
+        """, (amount, product_id))
 
     conn.commit()
     conn.close()
@@ -246,15 +237,15 @@ def select_quantity(order_id, product_id):
     return qua_status[0]
 
 
-def add_quantity(quantity, order_id, product_id):
+def add_quantity(order_id, product_id):
     conn = sqlite3.connect(db_path)  
     cursor = conn.cursor()
     cursor.execute(
     f"""
         UPDATE order_items 
-        SET quantity = ?
+        SET quantity = quantity + 1
         WHERE order_id = ? and product_id = ?
-        """, (quantity + 1, order_id, product_id))
+        """, (order_id, product_id))
     
     conn.commit()
     conn.close()
@@ -400,9 +391,9 @@ def delete_one_product(tg_id, product_id):
         cursor.execute(
             """
             UPDATE orders
-            SET total_sum = total_sum - ?
+            SET total_sum = ROUND(total_sum - ?, 2)
             WHERE id = ?
-            """, (round(price, 2), order_id)
+            """, (price, order_id)
         )
 
     else:
@@ -417,18 +408,47 @@ def delete_one_product(tg_id, product_id):
         cursor.execute(
             """
             UPDATE order_items
-            SET total_price = total_price - ?
+            SET total_price = ROUND(total_price - ?, 2)
             WHERE order_id = ? and product_id = ?
-            """, (round(price, 2), order_id, product_id)
+            """, (price, order_id, product_id)
         )
 
         cursor.execute(
             """
             UPDATE orders
-            SET total_sum = total_sum - ?
+            SET total_sum = ROUND(total_sum - ?, 2)
             WHERE id = ?
-            """, (round(price, 2), order_id)
+            """, (price, order_id)
         )
 
+    conn.commit()
+    conn.close()
+
+def delete_all_products(tg_id, product_id):
+    conn = sqlite3.connect(db_path)  
+    cursor = conn.cursor()
+
+    user_id = select_user_id(tg_id)
+    order_id = select_order_id(user_id)
+    quantity = select_quantity(order_id, product_id)
+    price = select_price(product_id)
+    
+
+    cursor.execute(
+        """
+         DELETE FROM order_items
+        WHERE product_id = ?
+        """, (product_id,)
+        )
+
+    cursor.execute(
+        """
+        UPDATE orders
+        SET total_sum = ROUND(total_sum - ? * ?, 2)
+        WHERE id = ?
+        """, (price, quantity, order_id)
+        )
+
+  
     conn.commit()
     conn.close()

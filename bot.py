@@ -1,7 +1,6 @@
 
 from config import TOKEN
 import telebot
-from math import ceil
 from random import choice
 import keyboards as kb
 import services as sv
@@ -100,12 +99,16 @@ def choice_answer(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
  
     if call.data.find("all") > -1:
-        pass
+        db.delete_all_products(call.message.chat.id, call.data[18:])
+        db.select_basket_head(call.message.chat.id)
+
     elif call.data.find("one") > -1:
         db.delete_one_product(call.message.chat.id, call.data[18:])
-        bot.send_message(call.message.chat.id, "удалена одна штука этого товара", reply_markup=kb.basket(call.message.chat.id))
-    else:
-        pass
+
+    head = db.select_basket_head(call.message.chat.id)
+    bot.send_message(call.message.chat.id, f"Итоговая сумма: {head[3]}", reply_markup=kb.basket(call.message.chat.id))
+
+
 
 
 
@@ -148,10 +151,10 @@ def send_email(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('page_'))
 def pages(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
-    max_size = int(ceil(db.catalog_size() // 6))
+    max_size = db.catalog_size() // 6
     if call.data.startswith("page_+1"):
         if int(call.data[8:]) < max_size:
-             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog(int(call.data[8:]) + 1))
+             bot.send_message(call.message.chat.id, "Каталог товаров?", reply_markup=kb.catalog(int(call.data[8:]) + 1))
         
         elif int(call.data[8:]) == max_size:
             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog())
@@ -163,13 +166,13 @@ def pages(call):
         else:
             bot.send_message(call.message.chat.id, "privet", reply_markup=kb.catalog(int(call.data[8:]) - 1))
 
-
+    
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('basket_page_'))
 def pages(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     
-    max_size = int(ceil(db.basket_size(call.message.chat.id) // 6))
+    max_size = (db.basket_size(call.message.chat.id) // 6)
     head = db.select_basket_head(call.message.chat.id)
     mes = f"Итоговая сумма: {head[3]}"
     if call.data.startswith("basket_page_+1"):
@@ -199,6 +202,10 @@ def answer_products_call(call):
         bot.send_message(call.message.chat.id, "каталог товаров:", reply_markup=kb.catalog())
 
 
+
+@bot.callback_query_handler(func=lambda call: call.data == 'another') 
+def products_call(call):
+    bot.answer_callback_query(call.id, text="я устал")
 
 
 @bot.message_handler(commands=['cat'])
